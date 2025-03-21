@@ -19,6 +19,10 @@ export function Chevreuse(props) {
     collapsed: true
   })
   
+  materials['Material.009'].roughness=1;
+  materials['Material.010'].roughness=1;
+  // materials['Material.009'].metalness=1;
+  // materials['Material.010'].metalness=1;
   return (
     <group {...props} scale={12} position={[-5, 0, -150]}>
       <group position={[3.939, -0.502, 0.629]} rotation={[-Math.PI / 2, 0, 0]} scale={0.183}>
@@ -88,7 +92,7 @@ export function Chevreuse(props) {
 <RigidBody colliders={"trimesh"} type="fixed">
   <group position={[-45.409, -0.458, 88.586]} scale={[0.325, 0.007, 0.325]}>
     <mesh castShadow receiveShadow geometry={nodes.Cube003_1.geometry} material={materials['Material.009']} />
-    <mesh castShadow receiveShadow geometry={nodes.Cube003_2.geometry} material={materials['Material.010']} />
+    <mesh castShadow receiveShadow geometry={nodes.Cube003_2.geometry} material={materials['Material.010']}/>
   </group>
 </RigidBody>
       <mesh castShadow receiveShadow geometry={nodes.Plane.geometry} position={[-33.313, -0.5, 88.551]} scale={89.155}>

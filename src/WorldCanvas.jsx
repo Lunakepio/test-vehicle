@@ -48,17 +48,23 @@ export const WorldCanvas = () => {
             <Vehicle position={spawn.position} rotation={spawn.rotation} />
           </KeyboardControls>
 
-          {/* <RigidBody type="fixed" colliders="cuboid" position={[0, 0, 0]} userData={{ outOfBounds: true }}>
-              <mesh>
-                  <boxGeometry args={[600, 1, 600]} />
-                  <meshStandardMaterial color="#ff5555" />
-              </mesh>
-          </RigidBody> */}
-          <Chevreuse />
+          <RigidBody
+            type="fixed"
+            colliders="cuboid"
+            position={[0, 0, 0]}
+            userData={{ outOfBounds: true }}
+          >
+            <mesh>
+              <boxGeometry args={[600, 1, 600]} />
+              <meshStandardMaterial color="#4e4e4e" />
+            </mesh>
+          </RigidBody>
+          {/* <Chevreuse /> */}
         </Physics>
+
         <Composer />
 
-        {/* <Environment preset="night" background/> */}
+        <Environment preset="night" environmentIntensity={0.5} />
 
         {/* <OrbitControls makeDefault /> */}
       </Suspense>
@@ -68,14 +74,9 @@ export const WorldCanvas = () => {
 };
 
 export const Composer = () => {
-
   return (
     <EffectComposer>
-      <Bloom
-        luminanceThreshold={0}
-        intensity={0.3}
-        mipmapBlur
-      />
+      <Bloom luminanceThreshold={0} intensity={0.3} mipmapBlur />
       <BrightnessContrast brightness={0.001} contrast={-0.01} />
       <SMAA />
     </EffectComposer>
