@@ -31,8 +31,8 @@ export function Car(props) {
   materials["Material.004"].emissiveIntensity = 2;
   materials["Material.006"].emissive = new Color(0x740909);
   materials["Material.006"].emissiveIntensity = 0;
-  materials["Material.002"].emissiveIntensity = 60;
-  // materials['Material.002'].emissive = new Color(0xffc562);
+  materials["Material.002"].emissiveIntensity = 20;
+  materials['Material.002'].emissive = new Color(0xffc562);
   let intensity = 1;
   useFrame(() => {
     const { brake } = get();
@@ -208,7 +208,7 @@ export function Car(props) {
           castShadow
           receiveShadow
           geometry={nodes.Object_109.geometry}
-          material={materials["Material.002"]}
+          material={materials["Material.001"]}
         />
         <mesh
           castShadow

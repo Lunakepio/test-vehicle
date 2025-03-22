@@ -19,6 +19,8 @@ import {
   SMAA,
   N8AO,
   BrightnessContrast,
+  DepthOfField,
+  Vignette,
 } from "@react-three/postprocessing";
 import { LUTCubeLoader } from "postprocessing";
 
@@ -48,7 +50,7 @@ export const WorldCanvas = () => {
             <Vehicle position={spawn.position} rotation={spawn.rotation} />
           </KeyboardControls>
 
-          <RigidBody
+          {/* <RigidBody
             type="fixed"
             colliders="cuboid"
             position={[0, 0, 0]}
@@ -58,8 +60,8 @@ export const WorldCanvas = () => {
               <boxGeometry args={[600, 1, 600]} />
               <meshStandardMaterial color="#4e4e4e" />
             </mesh>
-          </RigidBody>
-          {/* <Chevreuse /> */}
+          </RigidBody> */}
+          <Chevreuse />
         </Physics>
 
         <Composer />
@@ -79,6 +81,8 @@ export const Composer = () => {
       <Bloom luminanceThreshold={0} intensity={0.3} mipmapBlur />
       <BrightnessContrast brightness={0.001} contrast={-0.01} />
       <SMAA />
+      {/* <DepthOfField focusDistance={0.99} focalLength={0.07} bokehScale={10} height={1080} /> */}
+      <Vignette eskil={false} offset={0.1} darkness={0.6} />
     </EffectComposer>
   );
 };

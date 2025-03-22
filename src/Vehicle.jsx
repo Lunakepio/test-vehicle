@@ -12,10 +12,11 @@ import {
   _cameraPosition,
   _bodyPosition,
   spawn,
-  wheelInfo 
+  wheelInfo,
 } from "./Constants";
 import { Car } from "./M3";
-
+import { data } from "./curve";
+import { cameraPosition } from "three/tsl";
 
 export const Vehicle = ({ position, rotation }) => {
   const { world, rapier } = useRapier();
@@ -32,6 +33,11 @@ export const Vehicle = ({ position, rotation }) => {
   const leftLightRef = useRef(null);
   const rightLightRef = useRef(null);
 
+  const cameraSpeedFactor = 0.02;
+  let currentPoint = data.length - 1;
+  let afk = false;
+  let afkTimer = 0;
+  const afkThreshold = 4;
   const { vehicleController } = useVehicleController(
     chasisBodyRef,
     wheelsRef,
@@ -93,10 +99,18 @@ export const Vehicle = ({ position, rotation }) => {
       return;
 
     const t = 1.0 - Math.pow(0.01, delta);
-
+    afkTimer += delta;
     const controller = vehicleController.current;
     const chassisRigidBody = controller.chassis();
     const { forward, back, left, right, brake } = get();
+    if (forward || back || left || right || brake) {
+      afk = false;
+      afkTimer = 0;
+    }
+
+    if (afkTimer > afkThreshold) {
+      afk = true;
+    }
 
     const deltaAdjusted = delta * 60;
 
@@ -124,7 +138,7 @@ export const Vehicle = ({ position, rotation }) => {
       ground.current = collider;
     }
 
-    const engineForce = Number(forward) * accelerateForce - Number(back)
+    const engineForce = Number(forward) * accelerateForce - Number(back);
     controller.setWheelEngineForce(2, engineForce);
     controller.setWheelEngineForce(3, engineForce);
 
@@ -136,9 +150,14 @@ export const Vehicle = ({ position, rotation }) => {
     const wheelBrake = brakeForce;
     // controller.setWheelBrake(0, wheelBrake);
     // controller.setWheelBrake(1, wheelBrake);
-    controller.setWheelBrake(0, wheelBrake * Number(!forward) + Number(brake) * 0.05);
-    controller.setWheelBrake(1, wheelBrake * Number(!forward) + Number(brake) * 0.05);
-    console.log(controller.wheelBrake(0), controller.wheelBrake(1) );
+    controller.setWheelBrake(
+      0,
+      wheelBrake * Number(!forward) + Number(brake) * 0.05
+    );
+    controller.setWheelBrake(
+      1,
+      wheelBrake * Number(!forward) + Number(brake) * 0.05
+    );
 
     const currentSteering = controller.wheelSteering(0) || 0;
     const steerDirection = Number(left) - Number(right);
@@ -171,13 +190,61 @@ export const Vehicle = ({ position, rotation }) => {
       );
     }
 
-    state.camera.position.lerp(
-      cameraPositionRef.current.getWorldPosition(new THREE.Vector3()),
-      0.12 * deltaAdjusted
-    );
-    state.camera.lookAt(
-      cameraTargetRef.current.getWorldPosition(new THREE.Vector3())
-    );
+    if (!afk) {
+      state.camera.position.lerp(
+        cameraPositionRef.current.getWorldPosition(new THREE.Vector3()),
+        0.12 * deltaAdjusted
+      );
+      state.camera.lookAt(
+        cameraTargetRef.current.getWorldPosition(new THREE.Vector3())
+      );
+    }
+
+    if (afk) {
+      state.camera.lookAt(
+        chasisMeshRef.current.getWorldPosition(new THREE.Vector3())
+      );
+
+      if (currentPoint > 0) {
+        const previousPoint = chasisMeshRef.current
+          .getWorldPosition(new THREE.Vector3())
+          .add(data[currentPoint + 1] || data[currentPoint]);
+        const positionTarget = chasisMeshRef.current
+          .getWorldPosition(new THREE.Vector3())
+          .add(data[currentPoint]);
+
+        const distanceToPrev = previousPoint.distanceTo(positionTarget);
+
+        // Define a threshold to detect discontinuities
+        const discontinuityThreshold = 1.0; // Adjust as needed
+
+        if (distanceToPrev > discontinuityThreshold) {
+          // If there's a discontinuity, jump to the next point
+          state.camera.position.copy(positionTarget);
+        } else {
+          // Otherwise, lerp smoothly
+          state.camera.position.lerp(
+            positionTarget,
+            cameraSpeedFactor * deltaAdjusted
+          );
+        }
+
+        if (state.camera.position.distanceTo(positionTarget) < 0.5) {
+          currentPoint -= 1;
+        }
+
+        console.log(positionTarget);
+      } else {
+        currentPoint = data.length - 1;
+        state.camera.position.copy(
+          chasisMeshRef.current
+            .getWorldPosition(new THREE.Vector3())
+            .add(data[currentPoint])
+        );
+      }
+    }
+
+    // console.log(currentPoint)
 
     // if (controls.reset || outOfBounds) {
     //     const chassis = controller.chassis();
@@ -235,7 +302,7 @@ export const Vehicle = ({ position, rotation }) => {
     state.camera.updateProjectionMatrix();
     state.camera.updateMatrixWorld();
   });
-  
+
   const colliderSize = [1.3, 0.3, 0.54];
   return (
     <>
@@ -272,7 +339,7 @@ export const Vehicle = ({ position, rotation }) => {
             castShadow={false}
           />
           {/* <boxGeometry args={[colliderSize[0] * 2, colliderSize[1] * 2, colliderSize[2] * 2]} /> */}
-          <Car/>
+          <Car />
         </mesh>
 
         <group ref={cameraPositionRef} {...cameraPositionControls}>
@@ -284,7 +351,7 @@ export const Vehicle = ({ position, rotation }) => {
         </group>
 
         {/* <PerspectiveCamera position={[-5, 2, 10]} makeDefault={true} /> */}
-        {wheels.map((wheel, index) => (
+        {/* {wheels.map((wheel, index) => (
           <group
             key={index}
             ref={(ref) => (wheelsRef.current[index] = ref)}
@@ -301,7 +368,7 @@ export const Vehicle = ({ position, rotation }) => {
               </mesh>
             </group>
           </group>
-        ))}
+        ))} */}
       </RigidBody>
     </>
   );
